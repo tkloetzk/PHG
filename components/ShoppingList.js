@@ -13,25 +13,27 @@ export default class ShoppingList extends Component {
 
   componentDidMount = () => {
     this.api = new ShoppingListItemModel();
+    this.refreshShoppingList();
+  };
+
+  componentWillReceieveProps = nextProps => {
+    console.log(nextProps);
+  };
+
+  refreshShoppingList = () => {
+    this.api.getItem("ShoppingList").then(list => {
+      this.setState({ shoppingList: list });
+    });
   };
 
   renderItem = ({ item }) => (
     <View>
-      <Text>{item.name}</Text>
+      <Text>
+        {item.title} {item.aisle}
+      </Text>
     </View>
   );
   render() {
-    const data = [
-      {
-        name: "Test"
-      },
-      {
-        name: "Test2"
-      },
-      {
-        name: "Test3"
-      }
-    ];
     return (
       <View style={{ flex: 1 }}>
         <ScrollView>
@@ -39,12 +41,16 @@ export default class ShoppingList extends Component {
             <AddShoppingListItem
               onAdd={item => {
                 this.setState({ addingTodo: false });
-                this.api.add(item);
+                this.api.add(item).then(res => this.refreshShoppingList());
               }}
+              shoppingList={this.state.shoppingList}
               onCancelDelete={() => this.setState({ addingTodo: false })}
             />
           ) : null}
-          <FlatList data={data} renderItem={this.renderItem} />
+          <FlatList
+            data={this.state.shoppingList}
+            renderItem={this.renderItem}
+          />
         </ScrollView>
         <Footer customEvent={() => this.setState({ addingTodo: true })} />
       </View>

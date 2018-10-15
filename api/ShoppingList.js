@@ -3,6 +3,7 @@ import { AsyncStorage } from "react-native";
 class ShoppingListItemModel {
   constructor(key) {}
 
+  // add in key
   add = async item => {
     const exisitingItems = await AsyncStorage.getItem("ShoppingList");
     let itemsArray = [];
@@ -83,17 +84,20 @@ class ShoppingListItemModel {
   // //     console.log(error);
   // //   }
   // // }
-  // getItem = async key => {
-  //   return await AsyncStorage.getItem(key).then(result => {
-  //     if (result) {
-  //       try {
-  //         result = JSON.parse(result);
-  //       } catch (e) {
-  //         // console.error('AsyncStorage#getItem error deserializing JSON for key: ' + key, e.message);
-  //       }
-  //     }
-  //     return result;
-  //   });
-  // };
+  getItem = async key => {
+    return await AsyncStorage.getItem(key).then(result => {
+      if (result) {
+        try {
+          result = JSON.parse(result);
+        } catch (e) {
+          console.error(
+            "AsyncStorage#getItem error deserializing JSON for key: " + key,
+            e.message
+          );
+        }
+      }
+      return result;
+    });
+  };
 }
 export default ShoppingListItemModel;

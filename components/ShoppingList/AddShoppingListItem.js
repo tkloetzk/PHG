@@ -1,8 +1,13 @@
 import React, { Component } from "react";
-import { TouchableOpacity, AsyncStorage } from "react-native";
+import { TouchableOpacity } from "react-native";
 import { Button, View, Input, Segment, Text } from "native-base";
-import { Col, Row, Grid } from "react-native-easy-grid";
+import { Row, Grid } from "react-native-easy-grid";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import {
+  fetchItemTCIN,
+  fetchTCINAisle
+} from "../../service/shoppingList/redsky";
+import { findIndex } from "lodash";
 
 export default class AddShoppingListItem extends Component {
   state = {
@@ -11,7 +16,7 @@ export default class AddShoppingListItem extends Component {
       title: "",
       aisle: "",
       completed: false,
-      storage: "Other",
+      storage: "other",
       notes: ""
     },
     optionalFields: false
@@ -21,10 +26,28 @@ export default class AddShoppingListItem extends Component {
     this.setState({ optionalFields: !this.state.optionalFields });
   };
 
-  submit = () => {
+  submit = async () => {
     if (this.state.item.title.length > 0) {
-      this.props.onAdd(this.state.item);
+      const index = findIndex(this.props.shoppingList, {
+        title: this.state.item.title
+      });
+      if (index < 0) {
+        const tcin = await fetchItemTCIN(this.state.item.title);
+        const aisle = await fetchTCINAisle(tcin);
+        this.setState(
+          {
+            item: { ...this.state.item, aisle }
+          },
+          () => {
+            this.props.onAdd(this.state.item);
+          }
+        );
+        console.log(aisle);
+      } else {
+        console.log("highlight item at index " + index);
+      }
     }
+
     return null;
   };
 
@@ -75,16 +98,46 @@ export default class AddShoppingListItem extends Component {
           </Row>
           {this.state.optionalFields && (
             <Segment style={{ backgroundColor: "white" }}>
-              <Button first>
+              <Button
+                first
+                active={this.state.item.storage == "pantry"}
+                onPress={() =>
+                  this.setState({
+                    item: { ...this.state.item, storage: "pantry" }
+                  })
+                }
+              >
                 <Text>Pantry</Text>
               </Button>
-              <Button>
+              <Button
+                active={this.state.item.storage == "fridge"}
+                onPress={() =>
+                  this.setState({
+                    item: { ...this.state.item, storage: "fridge" }
+                  })
+                }
+              >
                 <Text>Fridge</Text>
               </Button>
-              <Button>
+              <Button
+                active={this.state.item.storage == "freezer"}
+                onPress={() =>
+                  this.setState({
+                    item: { ...this.state.item, storage: "freezer" }
+                  })
+                }
+              >
                 <Text>Freezer</Text>
               </Button>
-              <Button last active>
+              <Button
+                last
+                active={this.state.item.storage == "other"}
+                onPress={() =>
+                  this.setState({
+                    item: { ...this.state.item, storage: "other" }
+                  })
+                }
+              >
                 <Text>Other</Text>
               </Button>
             </Segment>
