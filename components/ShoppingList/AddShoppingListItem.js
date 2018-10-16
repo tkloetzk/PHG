@@ -38,12 +38,13 @@ export default class AddShoppingListItem extends Component {
       if (index < 0) {
         const tcin = await fetchItemTCIN(item.title);
         const aisle = await fetchTCINAisle(tcin);
+        console.log(aisle);
         this.setState(
           {
-            item: { ...item, aisle },
+            item: { ...this.state.item, aisle },
           },
           () => {
-            onAdd(item);
+            onAdd(this.state.item);
           },
         );
       } else {
