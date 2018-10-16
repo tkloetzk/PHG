@@ -47,7 +47,7 @@ export default class ShoppingList extends Component {
             <AddShoppingListItem
               onAdd={(item) => {
                 this.setState({ addingTodo: false });
-                this.api.add('ShoppingList', item).then(this.refreshShoppingList());
+                this.api.add('ShoppingList', item).then(res => this.refreshShoppingList());
               }}
               shoppingList={shoppingList}
               onCancelDelete={() => this.setState({ addingTodo: false })}
