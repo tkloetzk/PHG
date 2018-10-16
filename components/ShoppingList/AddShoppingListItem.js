@@ -1,50 +1,53 @@
-import React, { Component } from "react";
-import { TouchableOpacity } from "react-native";
-import { Button, View, Input, Segment, Text } from "native-base";
-import { Row, Grid } from "react-native-easy-grid";
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import React, { Component } from 'react';
+import { TouchableOpacity } from 'react-native';
 import {
-  fetchItemTCIN,
-  fetchTCINAisle
-} from "../../service/shoppingList/redsky";
-import { findIndex } from "lodash";
+  Button, View, Input, Segment, Text, Item,
+} from 'native-base';
+import { Row, Grid } from 'react-native-easy-grid';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { findIndex } from 'lodash';
+import PropTypes from 'prop-types';
+import { fetchItemTCIN, fetchTCINAisle } from '../../service/shoppingList/redsky';
 
 export default class AddShoppingListItem extends Component {
   state = {
-    addingItem: false,
     item: {
-      title: "",
-      aisle: "",
+      title: '',
+      aisle: '',
       completed: false,
-      storage: "other",
-      notes: ""
+      storage: 'other',
+      notes: '',
+      quantity: 1,
     },
-    optionalFields: false
+    optionalFields: false,
   };
 
   showOptionalFields = async () => {
-    this.setState({ optionalFields: !this.state.optionalFields });
+    const { optionalFields } = this.state;
+    this.setState({ optionalFields: !optionalFields });
   };
 
   submit = async () => {
-    if (this.state.item.title.length > 0) {
-      const index = findIndex(this.props.shoppingList, {
-        title: this.state.item.title
+    const { item } = this.state;
+    const { shoppingList, onAdd } = this.props;
+
+    if (item.title.length > 0) {
+      const index = findIndex(shoppingList, {
+        title: item.title,
       });
       if (index < 0) {
-        const tcin = await fetchItemTCIN(this.state.item.title);
+        const tcin = await fetchItemTCIN(item.title);
         const aisle = await fetchTCINAisle(tcin);
         this.setState(
           {
-            item: { ...this.state.item, aisle }
+            item: { ...item, aisle },
           },
           () => {
-            this.props.onAdd(this.state.item);
-          }
+            onAdd(item);
+          },
         );
-        console.log(aisle);
       } else {
-        console.log("highlight item at index " + index);
+        console.log(`highlight item at index ${index}`);
       }
     }
 
@@ -52,18 +55,24 @@ export default class AddShoppingListItem extends Component {
   };
 
   render() {
-    const { item } = this.state;
+    const { item, optionalFields } = this.state;
+    const { onCancelDelete } = this.props;
     return (
-      <View>
+      <View
+        style={{
+          borderBottomColor: 'grey',
+          borderBottomWidth: 1,
+        }}
+      >
         <Grid>
           <Row>
             <TouchableOpacity
-              onPress={() => this.props.onCancelDelete()}
+              onPress={() => onCancelDelete()}
               style={{ paddingLeft: 25, paddingRight: 15 }}
             >
               <MaterialCommunityIcons
                 name="cancel"
-                color={`${item.title.length > 0 ? "black" : "grey"}`}
+                color={`${item.title.length > 0 ? 'black' : 'grey'}`}
                 size={30}
                 style={{ paddingTop: 10, marginLeft: -20 }}
               />
@@ -72,13 +81,12 @@ export default class AddShoppingListItem extends Component {
             <Input
               // style={styles.textInput}
               autoFocus
-              onChangeText={title =>
-                this.setState(prevState => ({
-                  item: {
-                    ...prevState.item,
-                    title
-                  }
-                }))
+              onChangeText={title => this.setState(prevState => ({
+                item: {
+                  ...prevState.item,
+                  title,
+                },
+              }))
               }
               onSubmitEditing={this.submit}
               value={item.title}
@@ -96,54 +104,72 @@ export default class AddShoppingListItem extends Component {
               onPress={this.showOptionalFields}
             />
           </Row>
-          {this.state.optionalFields && (
-            <Segment style={{ backgroundColor: "white" }}>
-              <Button
-                first
-                active={this.state.item.storage == "pantry"}
-                onPress={() =>
-                  this.setState({
-                    item: { ...this.state.item, storage: "pantry" }
+          {optionalFields && (
+            <View>
+              <Segment style={{ backgroundColor: 'white' }}>
+                <Button
+                  first
+                  active={item.storage === 'pantry'}
+                  onPress={() => this.setState({
+                    item: { ...item, storage: 'pantry' },
                   })
-                }
-              >
-                <Text>Pantry</Text>
-              </Button>
-              <Button
-                active={this.state.item.storage == "fridge"}
-                onPress={() =>
-                  this.setState({
-                    item: { ...this.state.item, storage: "fridge" }
+                  }
+                >
+                  <Text>Pantry</Text>
+                </Button>
+                <Button
+                  active={item.storage === 'fridge'}
+                  onPress={() => this.setState({
+                    item: { ...item, storage: 'fridge' },
                   })
-                }
-              >
-                <Text>Fridge</Text>
-              </Button>
-              <Button
-                active={this.state.item.storage == "freezer"}
-                onPress={() =>
-                  this.setState({
-                    item: { ...this.state.item, storage: "freezer" }
+                  }
+                >
+                  <Text>Fridge</Text>
+                </Button>
+                <Button
+                  active={item.storage === 'freezer'}
+                  onPress={() => this.setState({
+                    item: { ...item, storage: 'freezer' },
                   })
-                }
-              >
-                <Text>Freezer</Text>
-              </Button>
-              <Button
-                last
-                active={this.state.item.storage == "other"}
-                onPress={() =>
-                  this.setState({
-                    item: { ...this.state.item, storage: "other" }
+                  }
+                >
+                  <Text>Freezer</Text>
+                </Button>
+                <Button
+                  last
+                  active={item.storage === 'other'}
+                  onPress={() => this.setState({
+                    item: { ...item, storage: 'other' },
                   })
-                }
-              >
-                <Text>Other</Text>
-              </Button>
-            </Segment>
+                  }
+                >
+                  <Text>Other</Text>
+                </Button>
+              </Segment>
+              <Item rounded style={{ paddingBottom: 15, marginBottom: 7 }}>
+                <Input
+                  placeholder="Notes"
+                  value={item.notes}
+                  returnKeyType="done"
+                  returnKeyLabel="done"
+                  onChangeText={notes => this.setState(prevState => ({
+                    item: {
+                      ...prevState.item,
+                      notes,
+                    },
+                  }))
+                  }
+                  onSubmitEditing={this.submit}
+                />
+              </Item>
+            </View>
           )}
         </Grid>
       </View>
     );
   }
 }
+
+AddShoppingListItem.propTypes = {
+  onCancelDelete: PropTypes.func.isRequired,
+};

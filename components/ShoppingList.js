@@ -1,14 +1,17 @@
-import React, { Component } from "react";
-import { FlatList, ScrollView } from "react-native";
-import { View, Text } from "native-base";
-import AddShoppingListItem from "./ShoppingList/AddShoppingListItem";
-import ShoppingListItemModel from "../api/ShoppingList";
-import Footer from "./shared/Footer";
+import React, { Component } from 'react';
+import { FlatList, ScrollView } from 'react-native';
+import {
+  View, Text, ListItem, CheckBox, Body,
+} from 'native-base';
+import { sortBy } from 'lodash';
+import AddShoppingListItem from './ShoppingList/AddShoppingListItem';
+import ShoppingListItemModel from '../api/ShoppingList';
+import Footer from './shared/Footer';
 
 export default class ShoppingList extends Component {
   state = {
     addingTodo: false,
-    shoppingList: []
+    shoppingList: [],
   };
 
   componentDidMount = () => {
@@ -16,41 +19,41 @@ export default class ShoppingList extends Component {
     this.refreshShoppingList();
   };
 
-  componentWillReceieveProps = nextProps => {
-    console.log(nextProps);
-  };
-
   refreshShoppingList = () => {
-    this.api.getItem("ShoppingList").then(list => {
-      this.setState({ shoppingList: list });
+    this.api.getItem('ShoppingList').then((list) => {
+      this.setState({ shoppingList: sortBy(list, 'aisle') });
     });
   };
 
   renderItem = ({ item }) => (
-    <View>
-      <Text>
-        {item.title} {item.aisle}
-      </Text>
-    </View>
+    <ListItem title={item.title} subtitle={item.notes}>
+      <Text>{item.quantity}</Text>
+      <Body>
+        <Text>{item.title}</Text>
+        {item.notes && <Text style={{ fontSize: 11 }}>{item.notes}</Text>}
+      </Body>
+      <Text style={{ paddingRight: 10 }}>{item.aisle}</Text>
+      <CheckBox checked />
+    </ListItem>
   );
+
   render() {
+    const { addingTodo, shoppingList } = this.state;
     return (
       <View style={{ flex: 1 }}>
         <ScrollView>
-          {this.state.addingTodo ? (
+          {addingTodo ? (
             <AddShoppingListItem
-              onAdd={item => {
+              onAdd={(item) => {
                 this.setState({ addingTodo: false });
-                this.api.add(item).then(res => this.refreshShoppingList());
+                this.api.add('ShoppingList', item).then(this.refreshShoppingList());
               }}
-              shoppingList={this.state.shoppingList}
+              refreshList={() => this.refreshShoppingList()}
+              shoppingList={shoppingList}
               onCancelDelete={() => this.setState({ addingTodo: false })}
             />
           ) : null}
-          <FlatList
-            data={this.state.shoppingList}
-            renderItem={this.renderItem}
-          />
+          <FlatList data={shoppingList} renderItem={this.renderItem} />
         </ScrollView>
         <Footer customEvent={() => this.setState({ addingTodo: true })} />
       </View>
