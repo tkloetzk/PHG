@@ -21,6 +21,7 @@ export default class ShoppingList extends Component {
 
   refreshShoppingList = () => {
     this.api.getItem('ShoppingList').then((list) => {
+      console.log(list);
       this.setState({ shoppingList: sortBy(list, 'aisle') });
     });
   };
@@ -48,7 +49,6 @@ export default class ShoppingList extends Component {
                 this.setState({ addingTodo: false });
                 this.api.add('ShoppingList', item).then(this.refreshShoppingList());
               }}
-              refreshList={() => this.refreshShoppingList()}
               shoppingList={shoppingList}
               onCancelDelete={() => this.setState({ addingTodo: false })}
             />

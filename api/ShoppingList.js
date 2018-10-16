@@ -22,18 +22,16 @@ class ShoppingListItemModel {
     }
   };
 
-  getItem = async key => AsyncStorage.getItem(key).then((result) => {
+  getItem = async key => AsyncStorage.getItem(key).then((response) => {
+    let result = response;
     if (result) {
       try {
-        return JSON.parse(result);
+        result = JSON.parse(result);
       } catch (e) {
-        // console.error(
-        //   'AsyncStorage#getItem error deserializing JSON for key: ' + key,
-        //   e.message
-        // );
+        console.error(`AsyncStorage#getItem error deserializing JSON for key: ${key}`, e.message);
       }
     }
-    return null;
+    return result;
   });
 }
 export default ShoppingListItemModel;
